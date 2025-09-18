@@ -11,7 +11,7 @@ api_key_newsdata = os.getenv("LATEST_NEWS_API_KEY_NEWSDATA")
 api = NewsDataApiClient(apikey=api_key_newsdata)
 
 response = api.latest_api(
-    q="bitcoin OR ethereum OR crypto OR regulation OR ETF",
+    q="cryptocurrency",
     max_result=10,  # 기사 수 제한 10개 (1 크레딧 당 10개 기사)
     scroll=False,
 )
@@ -77,7 +77,7 @@ def fetch_search(keyword, limit=3, source_key="coindesk"):
         print(f"Sentiment: {a.get('SENTIMENT')}")
         print(f"Date: {date_str}")
         print("-" * 50)
-        
+
 
 if __name__ == "__main__":
     fetch_latest()
