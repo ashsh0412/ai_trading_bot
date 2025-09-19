@@ -46,7 +46,9 @@ def fetch_latest(limit=3):
     print("\n=== Latest Articles ===")
     for a in data:
         ts = a.get("PUBLISHED_ON")
-        date_str = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S") if ts else "N/A"
+        date_str = (
+            datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S") if ts else "N/A"
+        )
 
         print(f"Title: {a.get('TITLE')}")
         print(f"Sentiment: {a.get('SENTIMENT')}")
@@ -71,7 +73,9 @@ def fetch_search(keyword, limit=3, source_key="coindesk"):
 
     for a in data:
         ts = a.get("PUBLISHED_ON")
-        date_str = datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S") if ts else "N/A"
+        date_str = (
+            datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S") if ts else "N/A"
+        )
 
         print(f"Title: {a.get('TITLE')}")
         print(f"Sentiment: {a.get('SENTIMENT')}")
