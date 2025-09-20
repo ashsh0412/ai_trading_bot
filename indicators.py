@@ -2,17 +2,25 @@ import ccxt
 import pandas as pd
 import numpy as np
 
+# 출력 옵션 설정
+pd.set_option("display.max_columns", None)
+pd.set_option("display.width", None)
+
 
 # SMA (Simple Moving Average) → 단순 이동평균
 # 최근 N일(캔들)의 가격 평균. 추세 방향을 부드럽게 보여줌.
 def SMA(series, window=14):
-    return series.rolling(window=window).mean()
+    """SMA를 현재가 대비 백분율로 정규화"""
+    sma = series.rolling(window=window).mean()
+    return (sma - series) / series * 100  # 현재가 대비 차이 %
 
 
 # EMA (Exponential Moving Average) → 지수 이동평균
 # 최근 데이터에 더 큰 가중치를 주어 변화에 빠르게 반응.
 def EMA(series, window=14):
-    return series.ewm(span=window, adjust=False).mean()
+    """EMA를 현재가 대비 백분율로 정규화"""
+    ema = series.ewm(span=window, adjust=False).mean()
+    return (ema - series) / series * 100  # 현재가 대비 차이 %
 
 
 # RSI (Relative Strength Index)
@@ -37,11 +45,15 @@ def RSI(series, window=14):
 # MACD > Signal → 매수 신호 (골든크로스)
 # MACD < Signal → 매도 신호 (데드크로스)
 def MACD(series, short=12, long=26, signal=9):
-    ema_short = EMA(series, short)
-    ema_long = EMA(series, long)
-    macd = ema_short - ema_long
-    signal_line = EMA(macd, signal)
+    # 실제 EMA 값을 구해서 사용
+    ema_short_raw = series.ewm(span=short, adjust=False).mean()
+    ema_long_raw = series.ewm(span=long, adjust=False).mean()
+
+    # 정규화된 MACD 계산
+    macd = (ema_short_raw - ema_long_raw) / ema_long_raw * 100
+    signal_line = macd.ewm(span=signal, adjust=False).mean()
     hist = macd - signal_line
+
     return macd, signal_line, hist
 
 
@@ -50,17 +62,29 @@ def MACD(series, short=12, long=26, signal=9):
 # 상단선 터치 → 과열 (매도 가능성)
 # 하단선 터치 → 저평가 (매수 가능성)
 def Bollinger_Bands(series, window=20, num_std=2):
-    sma = SMA(series, window)
+    # 실제 SMA 값 사용
+    sma_raw = series.rolling(window=window).mean()
     rolling_std = series.rolling(window=window).std()
-    upper = sma + (rolling_std * num_std)
-    lower = sma - (rolling_std * num_std)
-    return upper, sma, lower
+
+    upper_band = sma_raw + (rolling_std * num_std)
+    lower_band = sma_raw - (rolling_std * num_std)
+
+    # SMA 기준으로 정규화
+    upper = (upper_band - sma_raw) / sma_raw * 100
+    lower = (lower_band - sma_raw) / sma_raw * 100
+    mid = pd.Series(0, index=sma_raw.index)  # 항상 0%
+
+    return upper, mid, lower
 
 
 # ATR (Average True Range)
 # 변동성 지표. 값이 크면 변동성 ↑ (위험 크고 수익도 클 수 있음)
 # 값이 작으면 변동성 ↓ (안정적)
 def ATR(df, window=14):
+    """
+    ATR (Average True Range) - 가격 대비 변동성(%)
+    - 항상 현재가 대비 백분율(%) 값으로 반환
+    """
     high_low = df["high"] - df["low"]
     high_close = np.abs(df["high"] - df["close"].shift())
     low_close = np.abs(df["low"] - df["close"].shift())
@@ -69,7 +93,9 @@ def ATR(df, window=14):
     true_range = ranges.max(axis=1)
 
     atr = true_range.rolling(window=window).mean()
-    return atr
+    atr_pct = atr / df["close"] * 100
+
+    return atr_pct
 
 
 # OBV (On-Balance Volume)
@@ -78,47 +104,26 @@ def ATR(df, window=14):
 # 가격과 OBV가 같은 방향 → 추세 신뢰 ↑
 # 가격은 오르는데 OBV는 하락 → 추세 약화 (경고 신호)
 def OBV(df):
+    """
+    On-Balance Volume (OBV) - 항상 거래량 기준으로 정규화된 값 반환
+    - 가격이 오르면 해당 캔들의 거래량을 더하고, 내리면 빼는 누적 방식
+    - 결과값을 거래량 총합으로 나누어 종목 간 비교 가능
+    """
     obv = [0]
     for i in range(1, len(df)):
-        if df["close"][i] > df["close"][i - 1]:
-            obv.append(obv[-1] + df["volume"][i])
-        elif df["close"][i] < df["close"][i - 1]:
-            obv.append(obv[-1] - df["volume"][i])
+        if df["close"].iloc[i] > df["close"].iloc[i - 1]:
+            obv.append(obv[-1] + df["volume"].iloc[i])
+        elif df["close"].iloc[i] < df["close"].iloc[i - 1]:
+            obv.append(obv[-1] - df["volume"].iloc[i])
         else:
             obv.append(obv[-1])
-    return pd.Series(obv, index=df.index)
 
+    obv_series = pd.Series(obv, index=df.index)
 
-# ADX (Average Directional Index)
-# 추세의 강도만 보여주는 지표 (방향 X).
-# 0~100 사이 값:
-# 0~20 → 추세 약함
-# 20~40 → 추세 보통
-# 40 이상 → 강한 추세
-def ADX(df, window=14):
-    df["TR"] = np.maximum(
-        df["high"] - df["low"],
-        np.maximum(
-            abs(df["high"] - df["close"].shift()), abs(df["low"] - df["close"].shift())
-        ),
-    )
-    df["+DM"] = np.where(
-        (df["high"] - df["high"].shift()) > (df["low"].shift() - df["low"]),
-        np.maximum(df["high"] - df["high"].shift(), 0),
-        0,
-    )
-    df["-DM"] = np.where(
-        (df["low"].shift() - df["low"]) > (df["high"] - df["high"].shift()),
-        np.maximum(df["low"].shift() - df["low"], 0),
-        0,
-    )
+    # 항상 정규화 (거래량 총합 대비 %)
+    obv_series = obv_series / df["volume"].sum() * 100
 
-    tr_smooth = df["TR"].rolling(window=window).mean()
-    plus_di = 100 * (df["+DM"].rolling(window=window).mean() / tr_smooth)
-    minus_di = 100 * (df["-DM"].rolling(window=window).mean() / tr_smooth)
-    dx = (abs(plus_di - minus_di) / (plus_di + minus_di)) * 100
-    adx = dx.rolling(window=window).mean()
-    return adx
+    return obv_series
 
 
 # === 메인 함수 ===
@@ -130,49 +135,13 @@ def get_indicators(symbol, timeframe, limit):
     )
     df["ds"] = pd.to_datetime(df["timestamp"], unit="ms")
 
-    # 지표 계산
-    df["SMA20"] = SMA(df["close"], 20)  # 20기간 단순이동평균 (최근 20봉 종가 평균)
-    df["EMA20"] = EMA(df["close"], 20)  # 20기간 지수이동평균 (최근 데이터에 가중치)
-    df["RSI14"] = RSI(
-        df["close"], 14
-    )  # 14기간 RSI (과매수/과매도 지표, 70↑ 과열 / 30↓ 침체)
-
+    # 지표 계산 (SMA, EMA, MACD, RSI, BB, ATR, OBV)
+    df["SMA20"] = SMA(df["close"], 20)
+    df["EMA20"] = EMA(df["close"], 20)
+    df["RSI14"] = RSI(df["close"], 14)
     df["MACD"], df["MACD_signal"], df["MACD_hist"] = MACD(df["close"])
-    # MACD: 단기 EMA - 장기 EMA
-    # MACD_signal: MACD의 9기간 EMA (시그널선)
-    # MACD_hist: MACD - 시그널선 (히스토그램, 추세강도)
-
     df["BB_upper"], df["BB_mid"], df["BB_lower"] = Bollinger_Bands(df["close"])
-    # BB_upper: 볼린저밴드 상단 (과열 구간)
-    # BB_mid: 중심선 (20기간 SMA)
-    # BB_lower: 볼린저밴드 하단 (저평가 구간)
+    df["ATR14"] = ATR(df, 14)
+    df["OBV"] = OBV(df)
 
-    df["ATR14"] = ATR(df, 14)  # 14기간 ATR (평균 변동성, 값 클수록 변동성 큼)
-    df["OBV"] = OBV(df)  # OBV (거래량 기반 누적 지표, 추세 신뢰 확인)
-    df["ADX14"] = ADX(df)  # 14기간 ADX (추세 강도, 20↑ 추세 존재, 40↑ 강한 추세)
-
-    # 마지막 n개 요약
-    summary = df[
-        [
-            "ds",
-            "close",
-            "SMA20",
-            "EMA20",
-            "RSI14",
-            "MACD",
-            "MACD_signal",
-            "MACD_hist",
-            "BB_upper",
-            "BB_mid",
-            "BB_lower",
-            "ATR14",
-            "OBV",
-            "ADX14",
-        ]
-    ].tail(100)
-
-    return summary
-
-
-summary = get_indicators("BTC/USDT", "5m", 200)
-print(summary.to_string(index=False, float_format="%.2f"))
+    return df  # 전체 DataFrame 반환
