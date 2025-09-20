@@ -29,5 +29,6 @@ def top100_markets():
     # 상위 100개만 추출
     return sorted_markets[:100]
 
+
 for s, v in top100_markets()[:100]:
     print(s, v)

@@ -2,6 +2,7 @@ import ccxt
 import pandas as pd
 import numpy as np
 
+
 # SMA (Simple Moving Average) → 단순 이동평균
 # 최근 N일(캔들)의 가격 평균. 추세 방향을 부드럽게 보여줌.
 def SMA(series, window=14):
@@ -130,9 +131,11 @@ def get_indicators(symbol, timeframe, limit):
     df["ds"] = pd.to_datetime(df["timestamp"], unit="ms")
 
     # 지표 계산
-    df["SMA20"] = SMA(df["close"], 20)               # 20기간 단순이동평균 (최근 20봉 종가 평균)
-    df["EMA20"] = EMA(df["close"], 20)               # 20기간 지수이동평균 (최근 데이터에 가중치)
-    df["RSI14"] = RSI(df["close"], 14)               # 14기간 RSI (과매수/과매도 지표, 70↑ 과열 / 30↓ 침체)
+    df["SMA20"] = SMA(df["close"], 20)  # 20기간 단순이동평균 (최근 20봉 종가 평균)
+    df["EMA20"] = EMA(df["close"], 20)  # 20기간 지수이동평균 (최근 데이터에 가중치)
+    df["RSI14"] = RSI(
+        df["close"], 14
+    )  # 14기간 RSI (과매수/과매도 지표, 70↑ 과열 / 30↓ 침체)
 
     df["MACD"], df["MACD_signal"], df["MACD_hist"] = MACD(df["close"])
     # MACD: 단기 EMA - 장기 EMA
@@ -144,9 +147,9 @@ def get_indicators(symbol, timeframe, limit):
     # BB_mid: 중심선 (20기간 SMA)
     # BB_lower: 볼린저밴드 하단 (저평가 구간)
 
-    df["ATR14"] = ATR(df, 14)                        # 14기간 ATR (평균 변동성, 값 클수록 변동성 큼)
-    df["OBV"] = OBV(df)                              # OBV (거래량 기반 누적 지표, 추세 신뢰 확인)
-    df["ADX14"] = ADX(df)                            # 14기간 ADX (추세 강도, 20↑ 추세 존재, 40↑ 강한 추세)
+    df["ATR14"] = ATR(df, 14)  # 14기간 ATR (평균 변동성, 값 클수록 변동성 큼)
+    df["OBV"] = OBV(df)  # OBV (거래량 기반 누적 지표, 추세 신뢰 확인)
+    df["ADX14"] = ADX(df)  # 14기간 ADX (추세 강도, 20↑ 추세 존재, 40↑ 강한 추세)
 
     # 마지막 n개 요약
     summary = df[
@@ -169,6 +172,7 @@ def get_indicators(symbol, timeframe, limit):
     ].tail(100)
 
     return summary
+
 
 summary = get_indicators("BTC/USDT", "5m", 200)
 print(summary.to_string(index=False, float_format="%.2f"))

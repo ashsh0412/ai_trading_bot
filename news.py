@@ -10,6 +10,7 @@ load_dotenv()
 api_key_newsdata = os.getenv("LATEST_NEWS_API_KEY_NEWSDATA")
 api = NewsDataApiClient(apikey=api_key_newsdata)
 
+
 def fetch_newsdata_latest():
     response = api.latest_api(
         q="cryptocurrency",
@@ -28,7 +29,6 @@ def fetch_newsdata_latest():
 
     return news_list
 
-fetch_newsdata_latest()
 
 # Coindesk API 사용 (무료 플랜은 11,000 크레딧/월, 최대 250,000 Total)
 api_key_coindesk = os.getenv("COINDESK_API_KEY")
@@ -57,6 +57,7 @@ def fetch_latest():
             }
         )
     return articles
+
 
 # 뉴스 검색 (News Search 3 크래딧 소모)
 def fetch_search(keyword, source_key="coindesk"):
@@ -89,7 +90,7 @@ def fetch_search(keyword, source_key="coindesk"):
 
 
 def get_all_news(search_keyword):
-    
+
     news_list = fetch_newsdata_latest()
     for n in news_list:
         print(f"{n['date']}")
@@ -101,11 +102,12 @@ def get_all_news(search_keyword):
     for r in results:
         print(r["date"], r["title"], r["sentiment"])
         print("-" * 50)
-    
+
     search_results = fetch_search(search_keyword)
 
     for r in search_results:
         print(r["date"], r["title"], r["sentiment"])
         print("-" * 50)
+
 
 get_all_news("Ethereum")
