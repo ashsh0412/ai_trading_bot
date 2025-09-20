@@ -2,15 +2,6 @@ import ccxt
 import pandas as pd
 import numpy as np
 
-# Binance 데이터 불러오기
-binance = ccxt.binance()
-ohlcv = binance.fetch_ohlcv("BTC/USDT", timeframe="1h", limit=200)
-df = pd.DataFrame(
-    ohlcv, columns=["timestamp", "open", "high", "low", "close", "volume"]
-)
-df["ds"] = pd.to_datetime(df["timestamp"], unit="ms")
-
-
 # SMA (Simple Moving Average) → 단순 이동평균
 # 최근 N일(캔들)의 가격 평균. 추세 방향을 부드럽게 보여줌.
 def SMA(series, window=14):
@@ -129,33 +120,55 @@ def ADX(df, window=14):
     return adx
 
 
-# 지표 계산
-df["SMA20"] = SMA(df["close"], 20)
-df["EMA20"] = EMA(df["close"], 20)
-df["RSI14"] = RSI(df["close"], 14)
-df["MACD"], df["MACD_signal"], df["MACD_hist"] = MACD(df["close"])
-df["BB_upper"], df["BB_mid"], df["BB_lower"] = Bollinger_Bands(df["close"])
-df["ATR14"] = ATR(df, 14)
-df["OBV"] = OBV(df)
-df["ADX14"] = ADX(df)
+# === 메인 함수 ===
+def get_indicators(symbol, timeframe, limit):
+    binance = ccxt.binance()
+    ohlcv = binance.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
+    df = pd.DataFrame(
+        ohlcv, columns=["timestamp", "open", "high", "low", "close", "volume"]
+    )
+    df["ds"] = pd.to_datetime(df["timestamp"], unit="ms")
 
-summary = df[
-    [
-        "ds",
-        "close",
-        "SMA20",
-        "EMA20",
-        "RSI14",
-        "MACD",
-        "MACD_signal",
-        "MACD_hist",
-        "BB_upper",
-        "BB_mid",
-        "BB_lower",
-        "ATR14",
-        "OBV",
-        "ADX14",
-    ]
-].tail(20)
+    # 지표 계산
+    df["SMA20"] = SMA(df["close"], 20)               # 20기간 단순이동평균 (최근 20봉 종가 평균)
+    df["EMA20"] = EMA(df["close"], 20)               # 20기간 지수이동평균 (최근 데이터에 가중치)
+    df["RSI14"] = RSI(df["close"], 14)               # 14기간 RSI (과매수/과매도 지표, 70↑ 과열 / 30↓ 침체)
 
+    df["MACD"], df["MACD_signal"], df["MACD_hist"] = MACD(df["close"])
+    # MACD: 단기 EMA - 장기 EMA
+    # MACD_signal: MACD의 9기간 EMA (시그널선)
+    # MACD_hist: MACD - 시그널선 (히스토그램, 추세강도)
+
+    df["BB_upper"], df["BB_mid"], df["BB_lower"] = Bollinger_Bands(df["close"])
+    # BB_upper: 볼린저밴드 상단 (과열 구간)
+    # BB_mid: 중심선 (20기간 SMA)
+    # BB_lower: 볼린저밴드 하단 (저평가 구간)
+
+    df["ATR14"] = ATR(df, 14)                        # 14기간 ATR (평균 변동성, 값 클수록 변동성 큼)
+    df["OBV"] = OBV(df)                              # OBV (거래량 기반 누적 지표, 추세 신뢰 확인)
+    df["ADX14"] = ADX(df)                            # 14기간 ADX (추세 강도, 20↑ 추세 존재, 40↑ 강한 추세)
+
+    # 마지막 n개 요약
+    summary = df[
+        [
+            "ds",
+            "close",
+            "SMA20",
+            "EMA20",
+            "RSI14",
+            "MACD",
+            "MACD_signal",
+            "MACD_hist",
+            "BB_upper",
+            "BB_mid",
+            "BB_lower",
+            "ATR14",
+            "OBV",
+            "ADX14",
+        ]
+    ].tail(100)
+
+    return summary
+
+summary = get_indicators("BTC/USDT", "5m", 200)
 print(summary.to_string(index=False, float_format="%.2f"))

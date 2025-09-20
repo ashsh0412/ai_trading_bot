@@ -76,10 +76,10 @@ print(
     ).to_string(index=False)
 )
 
-print("\n[5] 교차 검증 성능 지표 (앞 5개)")
+print("\n[5] 교차 검증 성능 지표")
 print(
     df_p[["horizon", "mse", "rmse", "mae", "mape", "coverage"]]
-    .head()
+    .head(10)
     .rename(
         columns={
             "horizon": "예측기간",
