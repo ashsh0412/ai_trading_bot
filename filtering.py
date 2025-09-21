@@ -1,7 +1,9 @@
 from indicators import get_indicators
 from binance import top100_markets
+from price_forecast import run_prophet_analysis
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
+import numpy as np
 
 # 전역 캐시: (심볼, 타임프레임, 캔들개수) 단위로 저장; 나중에 While 추가시 초기화 필요
 ohlcv_cache = {}
@@ -51,6 +53,7 @@ def get_vol_metrics(symbol, timeframe="15m", limit=200):
     return atr_mean, band_width_mean, score
 
 
+# 변동성 점수와 거래대금 점수를 합하여 좋은 절반 필터링
 def filter_by_volatility(markets):
     scored = []
     with ThreadPoolExecutor(max_workers=12) as executor:
@@ -61,10 +64,16 @@ def filter_by_volatility(markets):
         for fut in as_completed(futures):
             res = fut.result()
             if res:
-                atr, band_width, score = res
+                atr, band_width, vol_score = res
                 s, v = futures[fut]
-                scored.append((s, v, atr, band_width, score))
 
+                # 최종 점수 = (ATR + 밴드폭) × log(1 + 거래대금)
+                liquidity = np.log1p(v)  # log(1+거래대금)
+                final_score = vol_score * liquidity
+
+                scored.append((s, v, atr, band_width, final_score))
+
+    # 최종 점수 기준 정렬
     scored.sort(key=lambda x: x[4], reverse=True)
     half = max(1, len(scored) // 2)
     return scored[:half]
@@ -220,14 +229,15 @@ def filter_by_basic(
 
 if __name__ == "__main__":
     # 1) 거래량 상위 100
-    markets = top100_markets()  # [(symbol, volume), ...] 가정
+    markets = top100_markets()
 
     # 2) 변동성 좋은 절반
     vol_top_half = filter_by_volatility(markets)
     print(f"\n[변동성 좋은 절반 종목] (총 {len(vol_top_half)}개)")
     for s, v, atr, band, score in vol_top_half:
         print(
-            f"{s} | 거래대금: {v:.2f} | ATR: {atr:.4f} | 밴드폭: {band:.4f} | 점수: {score:.4f}"
+            f"{s} | 거래대금: {v:.2f} | 로그거래대금: {np.log1p(v):.4f} | "
+            f"ATR: {atr:.4f} | 밴드폭: {band:.4f} | 점수: {score:.4f}"
         )
 
     # 3) 기본 필터 적용 (롱/숏 동시 스캔).
@@ -245,3 +255,52 @@ if __name__ == "__main__":
             f"추세상승:{info['trend_up']} 추세하락:{info['trend_down']} "
             f"MACD(강세/약세):{info['macd_bull']}/{info['macd_bear']}"
         )
+
+    # 4) Prophet 분석 (기본 필터 통과 종목 대상)
+    prophet_pass = []
+    for s, v, decision, info in basic_pass:
+        try:
+
+            # Prophet 포맷 맞춤
+            df = fetch_ohlcv(s, "15m", 200)  # get_indicators 결과
+            df_for_prophet = df.rename(columns={"close": "y"})[["ds", "y"]]
+
+            results = run_prophet_analysis(df_for_prophet, forecast_hours=24, freq="h")
+
+            forecast_summary = results["forecast_summary"]
+            last_price = info["last_close"]
+            last_yhat = forecast_summary["예측가격(중앙값, USDT)"].iloc[-1]
+            lower = forecast_summary["예상최저가(USDT)"].iloc[-1]
+            upper = forecast_summary["예상최고가(USDT)"].iloc[-1]
+
+            trend = results["trend_summary"].iloc[-1]["추세선(USDT)"]
+            mape = results["performance_summary"].iloc[0]["평균절대백분율오차(MAPE)"]
+
+            prophet_pass.append((s, v, decision, info, results))
+
+            # === 출력 ===
+            # print(f"\n[Prophet 분석 결과] {s}")
+            # print(f"현재가: {last_price:.10f} USDT")
+            # print(f"예측가 (중앙): {last_yhat:.2f} | 범위: {lower:.10f} ~ {upper:.10f}")
+            # print(f"기본 신호: {decision.upper()}")
+
+            # print("\n[1] 예측 결과")
+            # print(results["forecast_summary"].tail(10))  # 최근 10개만
+
+            # print("\n[2] 추세")
+            # print(results["trend_summary"].tail(10))
+
+            # print("\n[3] 변곡점")
+            # print(results["changepoints_summary"].tail(10))
+
+            # print("\n[4] 불확실성 구간")
+            # print(results["uncertainty_summary"].tail(10))
+
+            # print("\n[5] 성능 지표")
+            # print(results["performance_summary"].head(10))
+
+            # print("\n[6] 교차 검증 요약")
+            # print(results["cross_validation_summary"].head(10))
+
+        except Exception as e:
+            print(f"{s} Prophet 분석 실패: {e}")
