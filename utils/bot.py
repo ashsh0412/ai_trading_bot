@@ -15,6 +15,7 @@ api_key = os.getenv("GEMINI_API_KEY")
 
 client = genai.Client(api_key=api_key)
 
+
 # -------------------------
 # 1. NumPy 타입 변환 함수
 # -------------------------
@@ -33,6 +34,7 @@ def clean_numpy(obj):
     else:
         return obj
 
+
 # -------------------------
 # 2. Gemini 호출 함수
 # -------------------------
@@ -48,9 +50,10 @@ def ask_ai_investment(final_candidates):
         model="gemini-2.5-flash",
         config=types.GenerateContentConfig(
             system_instruction=(
-                "You are an advanced AI investment assistant. "
+                "You are an advanced AI investment assistant for a short-term trading (scalping/day trading) program. "
                 "Pick ONLY ONE most promising candidate from the list. "
                 "Give entry price, take-profit, stop-loss, and reasoning. "
+                "Focus on short-term opportunities and risk/reward. "
                 "Return pure JSON only, no extra text."
             ),
         ),
@@ -87,6 +90,7 @@ def ask_ai_investment(final_candidates):
         advice_text = advice_text.strip("`").strip()
 
     return advice_text
+
 
 # -------------------------
 # 3. 실행부

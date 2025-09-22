@@ -1,3 +1,4 @@
+import random
 from utils.price_forecast import run_prophet_analysis
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -145,9 +146,6 @@ def select_trading_candidates(results):
             candidate = {
                 "종목": r.get("symbol"),
                 "신호": "매수(LONG)" if signal == "LONG" else "매도(SHORT)",
-                "점수": final_score,
-                "기본점수": base_score,
-                "보너스점수": bonus_score,
                 "현재가": price,
                 "예측가": {
                     "중앙값": yhat,
@@ -198,16 +196,20 @@ def select_trading_candidates(results):
                 "예측성능": {
                     "MAPE": round(mape, 3),
                 },
+                "_점수": final_score,
             }
             final_candidates.append(candidate)
 
         except Exception as e:
             print(f"Candidate filter error on {r.get('symbol')}: {e}")
-    # === 점수 순 정렬 ===
-    final_candidates = sorted(final_candidates, key=lambda x: x["점수"], reverse=True)
 
-    # === 후보 개수 제한 ===
-    if len(final_candidates) > 5:
-        return final_candidates[:5]
-    else:
-        return final_candidates
+    final_candidates = sorted(final_candidates, key=lambda x: x["_점수"], reverse=True)
+    top_candidates = final_candidates[:5]
+
+    # === 점수 제거 ===
+    for c in top_candidates:
+        c.pop("_점수", None)
+
+    random.shuffle(top_candidates)
+
+    return top_candidates
