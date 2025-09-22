@@ -27,8 +27,7 @@ pd.set_option("display.width", None)
 def train_model(df):
     m = Prophet(
         interval_width=0.95,
-        changepoint_prior_scale=0.1,
-        weekly_seasonality=True,
+        changepoint_prior_scale=0.05,
         daily_seasonality=True,
     )
     m.fit(df[["ds", "y"]])

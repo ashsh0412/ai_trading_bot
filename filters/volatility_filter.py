@@ -35,11 +35,11 @@ def get_vol_metrics(fetch_func, symbol, timeframe, limit):
 
 
 # 변동성 점수와 거래대금 점수를 합하여 좋은 절반 필터링
-def filter_by_volatility(markets, fetch_func):
+def filter_by_volatility(markets, fetch_func, timeframe, limit):
     scored = []
-    with ThreadPoolExecutor(max_workers=12) as executor:
+    with ThreadPoolExecutor(max_workers=20) as executor:
         futures = {
-            executor.submit(get_vol_metrics, fetch_func, s, "15m", 200): (s, v)
+            executor.submit(get_vol_metrics, fetch_func, s, timeframe, limit): (s, v)
             for (s, v) in markets
         }
         for fut in as_completed(futures):

@@ -125,7 +125,6 @@ def OBV(df):
 
     return obv_series
 
-
 # === 메인 함수 ===
 def get_indicators(symbol, timeframe, limit):
     binance = ccxt.binance()

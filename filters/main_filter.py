@@ -2,6 +2,7 @@ from binance import top100_markets
 from utils.indicators import get_indicators
 from filters.basic_filter import filter_by_basic
 from filters.volatility_filter import filter_by_volatility
+from filters.prophet_filter import analyze_with_prophet, select_trading_candidates
 
 # 전역 캐시: (심볼, 타임프레임, 캔들개수) 단위로 저장; 나중에 While 추가시 초기화 필요
 ohlcv_cache = {}
@@ -19,12 +20,14 @@ def fetch_ohlcv(symbol, timeframe, limit):
     return ohlcv_cache[key]
 
 
-def run_filters(fetch_ohlcv, timeframe, limit, mode, lookback_cross):
+def run_filters(fetch_ohlcv, timeframe, limit, mode, lookback_cross, direction):
     # 1) 거래량 상위 100
     markets = top100_markets()
 
     # 2) 변동성 좋은 절반 필터링
-    vol_top_half = filter_by_volatility(markets, fetch_func=fetch_ohlcv)
+    vol_top_half = filter_by_volatility(
+        markets, fetch_func=fetch_ohlcv, timeframe=timeframe, limit=limit
+    )
 
     # 3) 기본 필터 적용 (롱/숏 동시 스캔).
     filtered_by_basic = filter_by_basic(
@@ -44,4 +47,14 @@ def run_filters(fetch_ohlcv, timeframe, limit, mode, lookback_cross):
             {"symbol": s, "volume": v, "signal": decision, "info": info, "ohlcv": df}
         )
 
-    return enriched
+    # 4) Prophet 분석 적용하여 종목 5개 이상 시 추가 필터링 (이하는 전부 통과)
+    prophet_pass = analyze_with_prophet(
+        enriched,
+        fetch_func=fetch_ohlcv,
+        timeframe=timeframe,
+        limit=limit,
+        direction=direction,
+    )
+    final_candidates = select_trading_candidates(prophet_pass)
+
+    return final_candidates
