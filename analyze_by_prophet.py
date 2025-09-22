@@ -88,7 +88,7 @@ prophet_pass = analyze_with_prophet(
 
 
 # === 후보 선정 함수 ===
-def select_trading_candidates(results, min_score=5):
+def select_trading_candidates(results):
     final_candidates = []
 
     for r in results:
@@ -139,54 +139,53 @@ def select_trading_candidates(results, min_score=5):
                 score += 1
             if signal == "SHORT" and r.get("forecast_trend_dir") == "하락":
                 score += 1
-
-            if score >= min_score:
-                candidate = {
-                    "종목": r.get("symbol"),
-                    "신호": "매수(LONG)" if signal == "LONG" else "매도(SHORT)",
-                    "점수": score,
-                    "현재가": price,
-                    "예측가": {
-                        "중앙값": yhat,
-                        "최저": lower,
-                        "최고": upper,
-                        "평균": r.get("forecast_avg"),
-                        "최댓값": r.get("forecast_max"),
-                        "최솟값": r.get("forecast_min"),
-                        "예측범위폭": (upper - lower) if upper and lower else None,
-                    },
-                    "추천전략": {
-                        "매수권장가": (
-                            (lower, yhat)
-                            if signal == "LONG" and lower and yhat
-                            else None
-                        ),
-                        "매도권장가": (
-                            (yhat, upper)
-                            if signal == "SHORT" and yhat and upper
-                            else None
-                        ),
-                    },
-                    "추세": {
-                        "기본필터_추세상승": r.get("trend_up"),
-                        "기본필터_추세하락": r.get("trend_down"),
-                        "Prophet_추세선": trend,
-                        "예측구간_방향성": r.get("forecast_trend_dir"),
-                    },
-                    "보조지표": {
-                        "RSI14": r.get("last_RSI14"),
-                        "MACD": r.get("last_MACD"),
-                        "MACD_시그널": r.get("last_MACD_signal"),
-                        "OBV": r.get("last_OBV"),
-                    },
-                    "예측성능": {
-                        "MAPE(평균절대백분율오차)": mape,
-                        "신뢰도등급": (
-                            "높음" if mape < 0.1 else "보통" if mape < 0.2 else "낮음"
-                        ),
-                    },
-                }
-                final_candidates.append(candidate)
+            
+            candidate = {
+                "종목": r.get("symbol"),
+                "신호": "매수(LONG)" if signal == "LONG" else "매도(SHORT)",
+                "점수": score,
+                "현재가": price,
+                "예측가": {
+                    "중앙값": yhat,
+                    "최저": lower,
+                    "최고": upper,
+                    "평균": r.get("forecast_avg"),
+                    "최댓값": r.get("forecast_max"),
+                    "최솟값": r.get("forecast_min"),
+                    "예측범위폭": (upper - lower) if upper and lower else None,
+                },
+                "추천전략": {
+                    "매수권장가": (
+                        (lower, yhat)
+                        if signal == "LONG" and lower and yhat
+                        else None
+                    ),
+                    "매도권장가": (
+                        (yhat, upper)
+                        if signal == "SHORT" and yhat and upper
+                        else None
+                    ),
+                },
+                "추세": {
+                    "기본필터_추세상승": r.get("trend_up"),
+                    "기본필터_추세하락": r.get("trend_down"),
+                    "Prophet_추세선": trend,
+                    "예측구간_방향성": r.get("forecast_trend_dir"),
+                },
+                "보조지표": {
+                    "RSI14": r.get("last_RSI14"),
+                    "MACD": r.get("last_MACD"),
+                    "MACD_시그널": r.get("last_MACD_signal"),
+                    "OBV": r.get("last_OBV"),
+                },
+                "예측성능": {
+                    "MAPE(평균절대백분율오차)": mape,
+                    "신뢰도등급": (
+                        "높음" if mape < 0.1 else "보통" if mape < 0.2 else "낮음"
+                    ),
+                },
+            }
+            final_candidates.append(candidate)
 
         except Exception as e:
             print(f"Candidate filter error on {r.get('symbol')}: {e}")
@@ -202,7 +201,7 @@ def select_trading_candidates(results, min_score=5):
 
 
 # === 최종 후보 출력 ===
-final_candidates = select_trading_candidates(prophet_pass, min_score=5)
+final_candidates = select_trading_candidates(prophet_pass)
 
 if not final_candidates:
     print("⚠️ 조건을 만족하는 후보가 없습니다.")
