@@ -9,7 +9,7 @@ pd.set_option("display.width", None)
 
 # SMA (Simple Moving Average) → 단순 이동평균
 # 최근 N일(캔들)의 가격 평균. 추세 방향을 부드럽게 보여줌.
-def SMA(series, window=14):
+def SMA(series, window):
     """SMA를 현재가 대비 백분율로 정규화"""
     sma = series.rolling(window=window).mean()
     return (sma - series) / series * 100  # 현재가 대비 차이 %
@@ -17,7 +17,7 @@ def SMA(series, window=14):
 
 # EMA (Exponential Moving Average) → 지수 이동평균
 # 최근 데이터에 더 큰 가중치를 주어 변화에 빠르게 반응.
-def EMA(series, window=14):
+def EMA(series, window):
     """EMA를 현재가 대비 백분율로 정규화"""
     ema = series.ewm(span=window, adjust=False).mean()
     return (ema - series) / series * 100  # 현재가 대비 차이 %
@@ -27,7 +27,7 @@ def EMA(series, window=14):
 # 0~100 값으로 현재 가격이 "과매수(70 이상)" 또는 "과매도(30 이하)" 상태인지 알려줌.
 # 70 이상 → 너무 많이 올랐으니 매도 위험
 # 30 이하 → 너무 많이 떨어졌으니 반등 가능성 (매수 기회)
-def RSI(series, window=14):
+def RSI(series, window):
     delta = series.diff()
     gain = delta.where(delta > 0, 0.0)
     loss = -delta.where(delta < 0, 0.0)
@@ -72,7 +72,7 @@ def Bollinger_Bands(series, window=20, num_std=2):
     # SMA 기준으로 정규화
     upper = (upper_band - sma_raw) / sma_raw * 100
     lower = (lower_band - sma_raw) / sma_raw * 100
-    mid = pd.Series(0, index=sma_raw.index)  # 항상 0%
+    mid = pd.Series(0, index=sma_raw.index)  # 중간선은 항상 0%
 
     return upper, mid, lower
 
@@ -80,7 +80,7 @@ def Bollinger_Bands(series, window=20, num_std=2):
 # ATR (Average True Range)
 # 변동성 지표. 값이 크면 변동성 ↑ (위험 크고 수익도 클 수 있음)
 # 값이 작으면 변동성 ↓ (안정적)
-def ATR(df, window=14):
+def ATR(df, window):
     """
     ATR (Average True Range) - 가격 대비 변동성(%)
     - 항상 현재가 대비 백분율(%) 값으로 반환
@@ -120,7 +120,7 @@ def OBV(df):
 
     obv_series = pd.Series(obv, index=df.index)
 
-    # 항상 정규화 (거래량 총합 대비 %)
+    # 정규화 (거래량 총합 대비 %)
     obv_series = obv_series / df["volume"].sum() * 100
 
     return obv_series
