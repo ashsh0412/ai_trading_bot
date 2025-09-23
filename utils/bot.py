@@ -5,20 +5,14 @@ import numpy as np
 from dotenv import load_dotenv
 import google.genai as genai
 from google.genai import types
-from filters.main_filter import run_filters, fetch_ohlcv
 
-# -------------------------
-# 0. 환경 변수 로드
-# -------------------------
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 
 client = genai.Client(api_key=api_key)
 
 
-# -------------------------
 # 1. NumPy 타입 변환 함수
-# -------------------------
 def clean_numpy(obj):
     """Convert NumPy types to native Python types (for JSON serialization)."""
     if isinstance(obj, dict):
@@ -35,9 +29,7 @@ def clean_numpy(obj):
         return obj
 
 
-# -------------------------
 # 2. Gemini 호출 함수
-# -------------------------
 def ask_ai_investment(final_candidates):
     # NumPy 타입 → Python 타입 변환
     final_candidates = clean_numpy(final_candidates)
@@ -84,39 +76,9 @@ def ask_ai_investment(final_candidates):
     # 응답 텍스트
     advice_text = response.text.strip()
 
-    # ```json ... ``` 같은 wrapper 제거
+    # wrapper 제거
     if advice_text.startswith("```"):
         advice_text = re.sub(r"^```[a-zA-Z]*\n", "", advice_text)
         advice_text = advice_text.strip("`").strip()
 
     return advice_text
-
-
-# -------------------------
-# 3. 실행부
-# -------------------------
-if __name__ == "__main__":
-    # 필터 실행
-    final_candidates = run_filters(
-        fetch_ohlcv=fetch_ohlcv,
-        timeframe="15m",
-        limit=1000,
-        mode="both",
-        lookback_cross=3,
-        direction="long",
-    )
-
-    # AI에게 투자 조언 요청
-    advice_text = ask_ai_investment(final_candidates)
-
-    print("=== AI Investment Advice (raw text) ===")
-    print(advice_text)
-
-    # JSON 파싱
-    try:
-        advice_json = json.loads(advice_text)
-        print("\n=== Parsed JSON ===")
-        print(advice_json)
-    except Exception as e:
-        print("\n⚠️ JSON parsing failed. Raw response shown above.")
-        print("Error:", e)

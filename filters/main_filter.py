@@ -1,10 +1,10 @@
-from binance import top100_markets
+from filters.volume_filter import top100_markets
 from utils.indicators import get_indicators
 from filters.basic_filter import filter_by_basic
 from filters.volatility_filter import filter_by_volatility
 from filters.prophet_filter import analyze_with_prophet, select_trading_candidates
 
-# 전역 캐시: (심볼, 타임프레임, 캔들개수) 단위로 저장; 나중에 While 추가시 초기화 필요
+# 전역 캐시: (심볼, 타임프레임, 캔들개수) 단위로 저장
 ohlcv_cache = {}
 
 
@@ -21,6 +21,8 @@ def fetch_ohlcv(symbol, timeframe, limit):
 
 
 def run_filters(fetch_ohlcv, timeframe, limit, mode, lookback_cross, direction):
+    global ohlcv_cache
+
     # 1) 거래량 상위 100
     markets = top100_markets()
 
@@ -56,5 +58,7 @@ def run_filters(fetch_ohlcv, timeframe, limit, mode, lookback_cross, direction):
         direction=direction,
     )
     final_candidates = select_trading_candidates(prophet_pass)
+
+    ohlcv_cache.clear()  # 캐시 초기화
 
     return final_candidates
