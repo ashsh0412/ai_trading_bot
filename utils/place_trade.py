@@ -47,7 +47,7 @@ def place_trade(signal):
 
     if action == "BUY":
         # 수수료 반영 후 매수 가능 금액
-        effective_balance = usdt_balance * 0.999  
+        effective_balance = usdt_balance * 0.999
 
         # 매수 수량 (예상치)
         amount = effective_balance / entry
@@ -62,11 +62,13 @@ def place_trade(signal):
         # 주문 금액 검증
         order_value = amount * entry
         if order_value < min_notional:
-            notify_error(f"⚠️ 주문 불가: 최소 {min_notional} USDT 필요 (현재 {order_value:.2f})")
+            notify_error(
+                f"⚠️ 주문 불가: 최소 {min_notional} USDT 필요 (현재 {order_value:.2f})"
+            )
             return
 
         # 지정가 매수
-        order = binance.create_limit_buy_order(symbol, amount, entry)
+        binance.create_limit_buy_order(symbol, amount, entry)
 
         # 체결 확인 후 실제 보유 잔고 확인 (수수료 반영)
         coin = symbol.split("/")[0]
@@ -78,15 +80,17 @@ def place_trade(signal):
             return
 
         # OCO 예약 매도
-        oco_order = binance.private_post_order_oco({
-            "symbol": symbol.replace("/", ""),
-            "side": "SELL",
-            "quantity": str(filled_amount),
-            "price": str(tp),               # 익절 가격
-            "stopPrice": str(sl),           # 손절 트리거
-            "stopLimitPrice": str(stop_limit_price),
-            "stopLimitTimeInForce": "GTC",
-        })
+        binance.private_post_order_oco(
+            {
+                "symbol": symbol.replace("/", ""),
+                "side": "SELL",
+                "quantity": str(filled_amount),
+                "price": str(tp),  # 익절 가격
+                "stopPrice": str(sl),  # 손절 트리거
+                "stopLimitPrice": str(stop_limit_price),
+                "stopLimitTimeInForce": "GTC",
+            }
+        )
 
     elif action == "SELL":
         # 보유 코인 잔고 확인
@@ -109,11 +113,13 @@ def place_trade(signal):
         # 주문 금액 검증
         order_value = amount * entry
         if order_value < min_notional:
-            notify_error(f"⚠️ 주문 불가: 최소 {min_notional} USDT 필요 (현재 {order_value:.2f})")
+            notify_error(
+                f"⚠️ 주문 불가: 최소 {min_notional} USDT 필요 (현재 {order_value:.2f})"
+            )
             return
 
         # 지정가 매도
-        order = binance.create_limit_sell_order(symbol, amount, entry)
+        binance.create_limit_sell_order(symbol, amount, entry)
 
         # 체결 후 실제 USDT 잔고 확인
         balances = binance.fetch_balance()
@@ -125,12 +131,14 @@ def place_trade(signal):
             return
 
         # OCO 예약 매수
-        oco_order = binance.private_post_order_oco({
-            "symbol": symbol.replace("/", ""),
-            "side": "BUY",
-            "quantity": str(filled_amount),
-            "price": str(sl),               # 재매수 가격
-            "stopPrice": str(tp),           # 손절 트리거
-            "stopLimitPrice": str(stop_limit_price),
-            "stopLimitTimeInForce": "GTC",
-        })
+        binance.private_post_order_oco(
+            {
+                "symbol": symbol.replace("/", ""),
+                "side": "BUY",
+                "quantity": str(filled_amount),
+                "price": str(sl),  # 재매수 가격
+                "stopPrice": str(tp),  # 손절 트리거
+                "stopLimitPrice": str(stop_limit_price),
+                "stopLimitTimeInForce": "GTC",
+            }
+        )

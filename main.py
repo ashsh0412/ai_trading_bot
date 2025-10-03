@@ -2,7 +2,7 @@ from filters.main_filter import run_filters, fetch_ohlcv
 from utils.bot import ask_ai_investment
 from utils.place_trade import place_trade
 import json
-from utils.discord_msg import notify_trade, notify_error
+from utils.discord_msg import notify_trade, notify_error, send_portfolio_message
 
 # direction : "long", "short", "both"
 # limit : OHLCV 데이터 개수 (캔들 갯수)
@@ -23,5 +23,6 @@ try:
     advice_json = json.loads(advice_text)
     place_trade(advice_json)
     notify_trade(advice_json)
+    send_portfolio_message()
 except Exception as e:
-    notify_trade(e)
+    notify_error(e)

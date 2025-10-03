@@ -18,6 +18,7 @@ binance = ccxt.binance(
     }
 )
 
+
 def top100_markets(fee_rate=0.001):
     """
     상위 100 USDT 마켓 중 내 잔고로 최소 주문 가능(수수료 고려)한 심볼만 반환
