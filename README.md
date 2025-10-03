@@ -7,7 +7,7 @@
 [![Prophet](https://img.shields.io/badge/Prophet-Time%20Series-0E76A8?style=for-the-badge)](https://facebook.github.io/prophet/)
 [![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
 [![Discord](https://img.shields.io/badge/Discord-Webhook-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/)
-[![Binance](https://img.shields.io/badge/Binance-%20Trading-FCD535?style=for-the-badge&logo=binance&logoColor=000)](https://www.binance.com/)
+[![Binance](https://img.shields.io/badge/Binance-Spot%20Trading-FCD535?style=for-the-badge&logo=binance&logoColor=000)](https://www.binance.com/)
 
 **Cryptocurrency Auto-Trading System**
 
@@ -19,7 +19,7 @@
 
 **Development Period:** September 2025 – Present
 
-An **AI-powered algorithmic trading bot** designed for Binance markets. This system combines technical analysis, time-series forecasting, and AI-driven decision-making to execute automated trades with intelligent risk management.
+An **AI-powered algorithmic trading bot** designed for Binance spot markets. This system combines technical analysis, time-series forecasting, and AI-driven decision-making to execute automated trades with intelligent risk management.
 
 ### 🎯 What Makes This Bot Special?
 
