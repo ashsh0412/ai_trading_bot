@@ -1,6 +1,7 @@
 import random
 from utils.price_forecast import run_prophet_analysis
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from utils.discord_msg import notify_error
 
 
 def analyze_with_prophet(filtered, fetch_func, timeframe, limit, direction):
@@ -12,7 +13,7 @@ def analyze_with_prophet(filtered, fetch_func, timeframe, limit, direction):
         decision = item["signal"].upper()
         info = item["info"]
 
-        # === LONG/SHORT 사전 필터링 ===
+        # LONG/SHORT 사전 필터링
         if direction == "long" and decision != "LONG":
             return None
         if direction == "short" and decision != "SHORT":
@@ -70,10 +71,10 @@ def analyze_with_prophet(filtered, fetch_func, timeframe, limit, direction):
             return record
 
         except Exception as e:
-            print(f"{s} Prophet 분석 실패: {e}")
+            notify_error(f"{s} Prophet 분석 실패: {e}")
             return None
 
-    # === 병렬 실행 ===
+    # 병렬 실행
     with ThreadPoolExecutor(max_workers=20) as executor:
         futures = [executor.submit(worker, item) for item in filtered]
         for fut in as_completed(futures):
@@ -84,7 +85,7 @@ def analyze_with_prophet(filtered, fetch_func, timeframe, limit, direction):
     return prophet_results
 
 
-# === 후보 선정 함수 ===
+# 후보 선정 함수
 def select_trading_candidates(results):
     final_candidates = []
 
@@ -100,7 +101,7 @@ def select_trading_candidates(results):
             trend = r.get("trend")
             mape = r.get("mape", 1.0)
 
-            # === 핵심 점수 계산 (기존 로직 강화) ===
+            # 핵심 점수 계산 (기존 로직 강화)
             if signal == "LONG" and r.get("trend_up", False):
                 base_score += 3  # 기본 추세 일치 중요도 증가
             if signal == "SHORT" and r.get("trend_down", False):
@@ -111,7 +112,7 @@ def select_trading_candidates(results):
             if signal == "SHORT" and r.get("macd_bear", False):
                 base_score += 1
 
-            # === 리스크 구간 평가 개선 ===
+            # 리스크 구간 평가 개선
             if lower and upper and price:
                 range_position = (
                     (price - lower) / (upper - lower) if upper != lower else 0.5
@@ -127,7 +128,7 @@ def select_trading_candidates(results):
                 elif lower <= price <= upper:  # 기본 구간 내
                     base_score += 1
 
-            # === 예측 방향성 일치 ===
+            # 예측 방향성 일치
             if signal == "LONG" and r.get("forecast_trend_dir") == "상승":
                 base_score += 3
             if signal == "SHORT" and r.get("forecast_trend_dir") == "하락":
@@ -201,12 +202,12 @@ def select_trading_candidates(results):
             final_candidates.append(candidate)
 
         except Exception as e:
-            print(f"Candidate filter error on {r.get('symbol')}: {e}")
+            notify_error(f"Candidate filter error on {r.get('symbol')}: {e}")
 
     final_candidates = sorted(final_candidates, key=lambda x: x["_점수"], reverse=True)
     top_candidates = final_candidates[:5]
 
-    # === 점수 제거 ===
+    # 점수 제거 (AI에게 점수 기반 판단 내리지 않게)
     for c in top_candidates:
         c.pop("_점수", None)
 

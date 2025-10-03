@@ -1,6 +1,7 @@
 import os
 import ccxt
 from dotenv import load_dotenv
+from utils.discord_msg import notify_error
 
 load_dotenv()
 
@@ -30,7 +31,7 @@ def get_spread(symbol):
             spread = (ask - bid) / ((ask + bid) / 2) * 100
             return spread
     except Exception as e:
-        print(f"Error fetching orderbook for {symbol}: {e}")
+        notify_error(f"Error fetching orderbook for {symbol}: {e}")
     return None
 
 

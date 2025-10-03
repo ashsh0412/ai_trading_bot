@@ -2,6 +2,7 @@ import os
 import ccxt
 from dotenv import load_dotenv
 from utils.place_trade import fetch_balance
+from utils.discord_msg import notify_error
 
 load_dotenv()
 
@@ -47,7 +48,7 @@ def top100_markets(fee_rate=0.001):
             if effective_balance >= min_notional:
                 markets.append((symbol, volume))
         except Exception as e:
-            print(f"Error checking {symbol}: {e}")
+            notify_error(f"Error checking {symbol}: {e}")
 
     # 거래대금 기준 내림차순 정렬
     sorted_markets = sorted(markets, key=lambda x: x[1], reverse=True)

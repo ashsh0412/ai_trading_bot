@@ -1,6 +1,7 @@
 import os
 import ccxt
 from dotenv import load_dotenv
+from utils.discord_msg import notify_error
 
 load_dotenv()
 
@@ -17,7 +18,7 @@ binance = ccxt.binance(
 )
 
 
-# === 잔고 조회 (USDT만 추출) ===
+# 잔고 조회 (USDT만 추출)
 def fetch_balance():
     balance = binance.fetch_balance()
     return balance["USDT"]["free"]  # 사용 가능한 USDT 잔고만 리턴
@@ -61,12 +62,11 @@ def place_trade(signal):
         # 주문 금액 검증
         order_value = amount * entry
         if order_value < min_notional:
-            print(f"⚠️ 주문 불가: 최소 {min_notional} USDT 필요 (현재 {order_value:.2f})")
+            notify_error(f"⚠️ 주문 불가: 최소 {min_notional} USDT 필요 (현재 {order_value:.2f})")
             return
 
         # 지정가 매수
         order = binance.create_limit_buy_order(symbol, amount, entry)
-        print("✅ Buy order placed:", order)
 
         # 체결 확인 후 실제 보유 잔고 확인 (수수료 반영)
         coin = symbol.split("/")[0]
@@ -74,7 +74,7 @@ def place_trade(signal):
         filled_amount = float(binance.amount_to_precision(symbol, coin_balance))
 
         if filled_amount <= 0:
-            print("⚠️ 매수 후 코인 잔고가 없습니다. OCO 예약 생략")
+            notify_error("⚠️ 매수 후 코인 잔고가 없습니다. OCO 예약 생략")
             return
 
         # OCO 예약 매도
@@ -87,7 +87,6 @@ def place_trade(signal):
             "stopLimitPrice": str(stop_limit_price),
             "stopLimitTimeInForce": "GTC",
         })
-        print("✅ OCO order placed:", oco_order)
 
     elif action == "SELL":
         # 보유 코인 잔고 확인
@@ -95,7 +94,7 @@ def place_trade(signal):
         coin_balance = balances[coin]["free"]
 
         if coin_balance <= 0:
-            print(f"⚠️ No {coin} balance to sell")
+            notify_error(f"⚠️ No {coin} balance to sell")
             return
 
         # 수량 정밀도 보정
@@ -110,12 +109,11 @@ def place_trade(signal):
         # 주문 금액 검증
         order_value = amount * entry
         if order_value < min_notional:
-            print(f"⚠️ 주문 불가: 최소 {min_notional} USDT 필요 (현재 {order_value:.2f})")
+            notify_error(f"⚠️ 주문 불가: 최소 {min_notional} USDT 필요 (현재 {order_value:.2f})")
             return
 
         # 지정가 매도
         order = binance.create_limit_sell_order(symbol, amount, entry)
-        print("✅ Sell order placed:", order)
 
         # 체결 후 실제 USDT 잔고 확인
         balances = binance.fetch_balance()
@@ -123,7 +121,7 @@ def place_trade(signal):
         filled_amount = float(binance.amount_to_precision(symbol, coin_balance))
 
         if filled_amount <= 0:
-            print("⚠️ 매도 후 코인 잔고가 없습니다. OCO 예약 생략")
+            notify_error("⚠️ 매도 후 코인 잔고가 없습니다. OCO 예약 생략")
             return
 
         # OCO 예약 매수
@@ -136,4 +134,3 @@ def place_trade(signal):
             "stopLimitPrice": str(stop_limit_price),
             "stopLimitTimeInForce": "GTC",
         })
-        print("✅ OCO order placed:", oco_order)
