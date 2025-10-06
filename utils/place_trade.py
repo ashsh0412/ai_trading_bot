@@ -1,7 +1,7 @@
 import os
 import ccxt
 from dotenv import load_dotenv
-from utils.discord_msg import notify_error
+from utils.discord_msg import notify_error, notify_trade
 
 load_dotenv()
 
@@ -77,6 +77,8 @@ def place_trade(signal):
         if filled_amount <= 0:
             notify_error("⚠️ 매수 후 코인 잔고가 없습니다. OCO 예약 생략")
             return
+        
+        notify_trade(signal)
 
         # OCO 예약 매도
         binance.private_post_order_oco(
@@ -128,6 +130,8 @@ def place_trade(signal):
         if filled_amount <= 0:
             notify_error("⚠️ 매도 후 코인 잔고가 없습니다. OCO 예약 생략")
             return
+        
+        notify_trade(signal)
 
         # OCO 예약 매수
         binance.private_post_order_oco(

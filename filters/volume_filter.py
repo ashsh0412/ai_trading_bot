@@ -54,5 +54,5 @@ def top100_markets(fee_rate=0.001):
     # 거래대금 기준 내림차순 정렬
     sorted_markets = sorted(markets, key=lambda x: x[1], reverse=True)
 
-    # 상위 100개만 추출
-    return sorted_markets[:100]
+    # 상위 100개만 추출 --> 50개로 변경 (배포환경에서 너무 오래걸림)
+    return sorted_markets[:50]

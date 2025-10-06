@@ -42,7 +42,7 @@ while True:
         final_candidates = run_filters(
             fetch_ohlcv=fetch_ohlcv,
             timeframe="5m",
-            limit=3000,
+            limit=1500,
             mode="both",
             lookback_cross=3,
             direction="long",
