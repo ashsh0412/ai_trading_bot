@@ -1,6 +1,5 @@
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from utils.discord_msg import notify_error
 
 # 기본 필터링 (SMA/EMA, MACD, RSI)
 #  - 의도:
@@ -143,7 +142,7 @@ def filter_by_basic(markets, fetch_func, timeframe, limit, mode, lookback_cross)
                 elif mode == decision:
                     results.append((sym, v, decision, explain))
             except Exception as e:
-                notify_error(f"[기본필터 오류] {s}: {e}")
+                print(f"[기본필터 오류] {s}: {e}")
                 continue
 
     results.sort(key=lambda x: x[1], reverse=True)

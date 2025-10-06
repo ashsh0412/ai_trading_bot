@@ -3,7 +3,6 @@ from utils.indicators import get_indicators
 from filters.basic_filter import filter_by_basic
 from filters.volatility_filter import filter_by_volatility
 from filters.prophet_filter import analyze_with_prophet, select_trading_candidates
-from utils.discord_msg import notify_error
 
 # 전역 캐시: (심볼, 타임프레임, 캔들개수) 단위로 저장
 ohlcv_cache = {}
@@ -16,7 +15,7 @@ def fetch_ohlcv(symbol, timeframe, limit):
             df = get_indicators(symbol, timeframe, limit)
             ohlcv_cache[key] = df
         except Exception as e:
-            notify_error(f"{symbol} OHLCV 가져오기 실패: {e}")
+            print(f"{symbol} OHLCV 가져오기 실패: {e}")
             return None
     return ohlcv_cache[key]
 

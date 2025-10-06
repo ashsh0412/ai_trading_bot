@@ -1,7 +1,6 @@
 import random
 from utils.price_forecast import run_prophet_analysis
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from utils.discord_msg import notify_error
 
 
 def analyze_with_prophet(filtered, fetch_func, timeframe, limit, direction):
@@ -71,7 +70,7 @@ def analyze_with_prophet(filtered, fetch_func, timeframe, limit, direction):
             return record
 
         except Exception as e:
-            notify_error(f"{s} Prophet 분석 실패: {e}")
+            print(f"{s} Prophet 분석 실패: {e}")
             return None
 
     # 병렬 실행
@@ -202,7 +201,7 @@ def select_trading_candidates(results):
             final_candidates.append(candidate)
 
         except Exception as e:
-            notify_error(f"Candidate filter error on {r.get('symbol')}: {e}")
+            print(f"Candidate filter error on {r.get('symbol')}: {e}")
 
     final_candidates = sorted(final_candidates, key=lambda x: x["_점수"], reverse=True)
     top_candidates = final_candidates[:5]

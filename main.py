@@ -13,13 +13,16 @@ from utils.discord_msg import notify_trade, notify_error, send_portfolio_message
 load_dotenv()
 api_key = os.getenv("BINANCE_API_KEY")
 secret_key = os.getenv("BINANCE_SECRET_KEY")
-binance = ccxt.binance({
-    "apiKey": api_key,
-    "secret": secret_key,
-    "enableRateLimit": True,
-    "options": {"defaultType": "spot"},
-})
+binance = ccxt.binance(
+    {
+        "apiKey": api_key,
+        "secret": secret_key,
+        "enableRateLimit": True,
+        "options": {"defaultType": "spot"},
+    }
+)
 binance.load_markets()
+
 
 def get_usdt_free():
     try:
@@ -28,6 +31,7 @@ def get_usdt_free():
     except:
         return 0.0
 
+
 # 루프 실행
 while True:
     try:
@@ -35,7 +39,7 @@ while True:
         usdt_free = get_usdt_free()
         if usdt_free < 5.0:
             print(f"스킵: USDT 가용 {usdt_free:.4f} < 5.0")
-            time.sleep(300)
+            time.sleep(600)
             continue
 
         # 2) 후보 스캔
@@ -50,7 +54,7 @@ while True:
 
         # 후보 없으면 패스
         if not final_candidates:
-            time.sleep(300)
+            time.sleep(600)
             continue
 
         # 3) AI 조언 요청
@@ -61,11 +65,10 @@ while True:
 
         # 5) 매매 실행
         place_trade(advice_json)
-        notify_trade(advice_json)
         send_portfolio_message()
 
     except Exception as e:
         notify_error(str(e))
 
     # 3분마다 반복
-    time.sleep(300)
+    time.sleep(600)

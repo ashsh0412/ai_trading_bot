@@ -85,7 +85,7 @@ def place_trade(signal):
         if filled_amount <= 0:
             notify_error("⚠️ 매수 후 코인 잔고가 없습니다. OCO 예약 생략")
             return
-        
+
         notify_trade(signal)
 
         # OCO 예약 매도
@@ -113,7 +113,7 @@ def place_trade(signal):
         # 수량 정밀도 보정
         amount = float(binance.amount_to_precision(symbol, coin_balance))
 
-         # 잔고 및 최소 주문 가능 수량 체크
+        # 잔고 및 최소 주문 가능 수량 체크
         min_amount = market["limits"]["amount"]["min"]
         if amount < min_amount:
             notify_error(
@@ -146,7 +146,7 @@ def place_trade(signal):
         if filled_amount <= 0:
             notify_error("⚠️ 매도 후 코인 잔고가 없습니다. OCO 예약 생략")
             return
-        
+
         notify_trade(signal)
 
         # OCO 예약 매수
