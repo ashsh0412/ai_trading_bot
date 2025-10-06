@@ -52,6 +52,14 @@ def place_trade(signal):
         amount = effective_balance / entry
         amount = float(binance.amount_to_precision(symbol, amount))
 
+        # 잔고 및 최소 주문 가능 수량 체크
+        min_amount = market["limits"]["amount"]["min"]
+        if amount < min_amount:
+            notify_error(
+                f"⚠️ {symbol} 주문 불가: 최소 수량 {min_amount}보다 작음 (현재 {amount})"
+            )
+            return
+
         # 가격 정밀도 보정
         entry = float(binance.price_to_precision(symbol, entry))
         tp = float(binance.price_to_precision(symbol, tp))
@@ -104,6 +112,14 @@ def place_trade(signal):
 
         # 수량 정밀도 보정
         amount = float(binance.amount_to_precision(symbol, coin_balance))
+
+         # 잔고 및 최소 주문 가능 수량 체크
+        min_amount = market["limits"]["amount"]["min"]
+        if amount < min_amount:
+            notify_error(
+                f"⚠️ {symbol} 주문 불가: 최소 수량 {min_amount}보다 작음 (현재 {amount})"
+            )
+            return
 
         # 가격 정밀도 보정
         entry = float(binance.price_to_precision(symbol, entry))
