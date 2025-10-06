@@ -8,6 +8,8 @@
 [![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
 [![Discord](https://img.shields.io/badge/Discord-Webhook-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/)
 [![Binance](https://img.shields.io/badge/Binance-Spot%20Trading-FCD535?style=for-the-badge&logo=binance&logoColor=000)](https://www.binance.com/)
+[![Oracle Cloud](https://img.shields.io/badge/Oracle%20Cloud-Compute%20Instance-F80000?style=for-the-badge&logo=oracle&logoColor=white)](https://www.oracle.com/cloud/)
+[![Server Deployment](https://img.shields.io/badge/Server%20Deployment-systemd%20%2F%20Ubuntu-333333?style=for-the-badge&logo=ubuntu&logoColor=E95420)](https://ubuntu.com/)
 
 **Cryptocurrency Auto-Trading System**
 
@@ -23,11 +25,13 @@ An **AI-powered algorithmic trading bot** designed for Binance spot markets. Thi
 
 ### 🎯 What Makes This Bot Special?
 
-- **Multi-Stage Filtering Pipeline**: Progressive filtering from 100+ symbols to high-probability candidates
-- **AI-Powered Decision Making**: Gemini 2.5 Flash analyzes market data and generates structured trade plans
-- **Prophet Forecasting**: Facebook Prophet model validates short-term trends with quality metrics
-- **Automated Execution**: Complete order lifecycle management with OCO, TP/SL support
-- **Real-Time Monitoring**: Instant Discord notifications for trades, errors, and portfolio updates
+- **Multi-Stage Filtering Pipeline**: Progressive filtering from 100+ symbols to high-probability candidates  
+- **AI-Powered Decision Making**: Gemini 2.5 Flash analyzes market data and generates structured trade plans  
+- **Prophet Forecasting**: Facebook Prophet model validates short-term trends with quality metrics  
+- **Automated Execution**: Complete order lifecycle management with OCO, TP/SL support  
+- **Real-Time Monitoring**: Instant Discord notifications for trades, errors, and portfolio updates  
+- **Persistent Cloud Deployment**: Deployed on Oracle Cloud with continuous operation via `systemd` auto-restart  
+- **Automatic Infrastructure**: Automatically restarts after crashes or reboots, ensuring 24/7 uptime  
 
 ---
 
@@ -116,6 +120,14 @@ An **AI-powered algorithmic trading bot** designed for Binance spot markets. Thi
 - Generates structured JSON trade plans
 - Includes entry price, take profit, stop loss, and reasoning
 
+### 🌐 Server Deployment
+
+**Oracle Cloud (Always-On Hosting)**
+- Hosted on Oracle Cloud Compute Instance for 24/7 uptime  
+- Automatically restarts via `systemd` service after crashes or reboots  
+- Logs stored in `/home/ubuntu/ai_trading_bot/log.txt` and `/error.txt`  
+- Requires no active SSH session — runs fully in the background  
+
 **Sample AI Output:**
 ```json
 {
@@ -138,9 +150,21 @@ An **AI-powered algorithmic trading bot** designed for Binance spot markets. Thi
 - Python 3.10+
 - ccxt (Binance API)
 - pandas & numpy
+- Prophet (Time Series Forecasting)
+- Google Gemini 2.5 Flash (AI Decision Engine)
 
 </td>
 <td>
+
+**Infrastructure**
+- Oracle Cloud Compute Instance (Always-On Server)
+- Ubuntu 22.04 Environment
+- systemd Service (Auto-Restart & Persistent Deployment)
+- Discord Webhook (Real-Time Notifications)
+
+</td>
+</tr>
+</table>
 
 **Analysis**
 - Prophet (forecasting)
@@ -199,11 +223,13 @@ Python 기반 **바이낸스 암호화폐 거래용 AI 자동매매 시스템**�
 
 ### 🎯 특별한 이유
 
-- **다단계 필터링 파이프라인**: 100개 이상 종목에서 고확률 후보군 선별
-- **AI 기반 의사결정**: Gemini 2.5가 시장 데이터를 분석하고 구조화된 매매 계획 생성
-- **Prophet 예측 모델**: Facebook Prophet으로 단기 추세를 검증하고 품질 지표 적용
-- **자동 주문 실행**: OCO, TP/SL을 포함한 완전한 주문 생애주기 관리
-- **실시간 모니터링**: 매매, 오류, 포트폴리오 업데이트에 대한 즉각적인 Discord 알림
+- **다단계 필터링 파이프라인**: 100개 이상 종목에서 고확률 후보군 선별  
+- **AI 기반 의사결정**: Gemini 2.5가 시장 데이터를 분석하고 구조화된 매매 계획 생성  
+- **Prophet 예측 모델**: Facebook Prophet으로 단기 추세를 검증하고 품질 지표 적용  
+- **자동 주문 실행**: OCO, TP/SL을 포함한 완전한 주문 생애주기 관리  
+- **실시간 모니터링**: 매매, 오류, 포트폴리오 업데이트에 대한 즉각적인 Discord 알림  
+- **상시 서버 운영**: Oracle Cloud 환경에서 24시간 구동되며, 재부팅·오류 발생 시 `systemd`가 자동 복구  
+- **무중단 자율 운영**: 서버가 꺼지거나 SSH 연결이 끊겨도 지속 작동하는 완전 자동화 구조
 
 ---
 
@@ -248,6 +274,14 @@ Python 기반 **바이낸스 암호화폐 거래용 AI 자동매매 시스템**�
 - 진입/청산 세부 정보가 포함된 실시간 거래 알림
 - 실패한 작업에 대한 오류 알림
 - 총 평가액이 포함된 포트폴리오 요약
+
+### 서버 운영
+
+**오라클 클라우드 (상시 서버 운영)**
+- Oracle Cloud 인스턴스에서 24시간 구동되는 서버 환경  
+- 서버 재부팅 또는 오류 발생 시 `systemd`가 자동으로 재시작  
+- 모든 실행 로그는 `/home/ubuntu/ai_trading_bot/log.txt`, `/error.txt`에 저장  
+- SSH 접속이 종료되어도 백그라운드에서 지속적으로 작동
 
 ---
 
