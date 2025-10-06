@@ -39,7 +39,7 @@ while True:
         usdt_free = get_usdt_free()
         if usdt_free < 5.0:
             print(f"스킵: USDT 가용 {usdt_free:.4f} < 5.0")
-            time.sleep(600)
+            time.sleep(1800)
             continue
 
         # 2) 후보 스캔
@@ -54,7 +54,7 @@ while True:
 
         # 후보 없으면 패스
         if not final_candidates:
-            time.sleep(600)
+            time.sleep(1800)
             continue
 
         # 3) AI 조언 요청
@@ -70,5 +70,5 @@ while True:
     except Exception as e:
         notify_error(str(e))
 
-    # 3분마다 반복
-    time.sleep(600)
+    # 30분마다 반복
+    time.sleep(1800)
