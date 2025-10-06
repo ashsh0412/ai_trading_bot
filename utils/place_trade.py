@@ -38,8 +38,7 @@ def place_trade(signal):
     sl = float(signal["stop_loss"])
 
     # 현재 잔고
-    balances = binance.fetch_balance()
-    usdt_balance = balances["USDT"]["free"]
+    usdt_balance = fetch_balance()
 
     # 심볼별 마켓 정보
     market = binance.market(symbol)
