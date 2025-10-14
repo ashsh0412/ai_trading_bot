@@ -10,15 +10,7 @@
 [![Binance](https://img.shields.io/badge/Binance-Spot%20Trading-FCD535?style=for-the-badge&logo=binance&logoColor=000)](https://www.binance.com/)
 [![Oracle Cloud](https://img.shields.io/badge/Oracle%20Cloud-Compute%20Instance-F80000?style=for-the-badge&logo=oracle&logoColor=white)](https://www.oracle.com/cloud/)
 [![Server Deployment](https://img.shields.io/badge/Server%20Deployment-systemd%20%2F%20Ubuntu-333333?style=for-the-badge&logo=ubuntu&logoColor=E95420)](https://ubuntu.com/)
-
-### 💬 Community / 커뮤니티
-
-[![Discord](https://img.shields.io/badge/Join%20on%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/7hsBkBYu)
  
-**Join our Discord community to track live AI trading activities, including traded symbols and capital allocation!**  
-AI 트레이딩 매매 현황과 종목, 자금 운용 정보를 함께 확인하기 위해 **디스코드 커뮤니티에 참여하세요!**
-
-👉 [https://discord.gg/7hsBkBYu](https://discord.gg/7hsBkBYu)
 
 </div>
 
